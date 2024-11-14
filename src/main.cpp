@@ -18,6 +18,7 @@ bool statusFlag;
 
 
 void useFlag(int myCommand) {
+  Serial.println(myCommand);
   switch (myCommand) {
     case 1:
       myServo.write(180);
