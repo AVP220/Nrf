@@ -5,7 +5,7 @@
 #include <Arduino.h> 
 
 
-#define V_T_BATTERY 3.3
+#define V_T_BATTERY 512 //пока так потом через мап уже ридумаю
 
 Servo myServo;                  
 RF24 radio(9, 10);
@@ -29,14 +29,14 @@ void useFlag(int myCommand) {
       statusFlag = 0;       
       break;
 
-    case "CHECK":                    // Обработка запроса статуса
+    case 111:                    // Обработка запроса статуса
       if(analogRead(0) <= V_T_BATTERY){
         statusBattery = false;
       }else{
         statusBattery = true;
       }
       bool ToSend[2]{statusBattery, statusFlag};
-      radio.writeAckPayload(&ToSend, sizeof(ToSend)); 
+      radio.writeAckPayload(1, &ToSend, sizeof(ToSend)); 
       break;
   }
 }
