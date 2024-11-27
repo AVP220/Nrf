@@ -10,9 +10,14 @@ Servo myServo;
 RF24 radio(9, 10);
 
 const byte address[6] = "00001"; // ID приёмника
-bool statusBattery;
-bool statusFlag;
-int ToSend[2]={statusBattery, statusFlag};
+int statusBattery;
+int statusFlag;
+byte ToSend[2];
+
+void updateToSend() {
+  ToSend[0] = statusBattery; // Первый байт: статус батареи
+  ToSend[1] = statusFlag;    // Второй байт: флаг состояния
+}
 
 
 void useFlag(int myCommand) {
@@ -21,6 +26,7 @@ void useFlag(int myCommand) {
     Serial.println("Command 1");
     myServo.write(180);
     statusFlag = 1;
+    updateToSend();
     radio.writeAckPayload(1, &ToSend, sizeof(ToSend));
     break;
 
@@ -28,16 +34,19 @@ void useFlag(int myCommand) {
   Serial.println("Command 0");
     myServo.write(0);
     statusFlag = 0;
+    updateToSend();
     radio.writeAckPayload(1, &ToSend, sizeof(ToSend));
     break;
 
   case 111: // Обработка запроса статуса
   Serial.println("Command 111");
     if (analogRead(0) <= V_T_BATTERY) {
-      statusBattery = false;
+      statusBattery = 254;
+      Serial.println("LowBattery");
     } else {
-      statusBattery = true;
+      statusBattery = 100;
     }
+    updateToSend();
     radio.writeAckPayload(1, &ToSend, sizeof(ToSend));
     break;
       default:
@@ -65,6 +74,7 @@ void setup() {
 
   myServo.attach(8);
   myServo.write(180);
+  updateToSend();
 }
   unsigned long startTimeBattery = millis();
 void loop() {
